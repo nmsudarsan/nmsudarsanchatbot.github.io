@@ -39,7 +39,8 @@ def load_documents():
     if not st.session_state.get("vectors_loaded", False):  # Check if already loaded
         try:
             # GitHub raw file URL for the about_me.pdf file
-            about_file_url = "https://github.com/nmsudarsan/nmsudarsanchatbot.github.io/blob/personal-chat/about_me.pdf"
+            about_file_url = "https://raw.githubusercontent.com/nmsudarsan/nmsudarsanchatbot.github.io/personal-chat/about_me.pdf"
+
             # Fetch the PDF file from GitHub
             response = requests.get(about_file_url)
             response.raise_for_status()  # Ensure the file was fetched successfully
