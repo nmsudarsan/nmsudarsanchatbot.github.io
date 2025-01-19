@@ -32,30 +32,30 @@ prompt = ChatPromptTemplate.from_template(
     Questions: {input}
     """
 )
-
-# Function to load documents
+# Function to load documents from GitHub repository
 def load_documents():
-    """Loads resume and cover letter PDFs and creates vector embeddings."""
+    """Loads the 'about_me.pdf' file from GitHub and creates vector embeddings."""
     if not st.session_state.get("vectors_loaded", False):  # Check if already loaded
         try:
-            folder_path = "C:\\Users\\nmsud\\OneDrive\\Desktop\\About"
-            resume_file = os.path.join(folder_path, "Sudarsan_Nallur Murali_Resume.pdf")
-            cover_letter_file = os.path.join(folder_path, "Cover_Letter Sudarsan_Nallur_Murali.pdf")
-            
-            # Load documents
+            # GitHub raw file URL for the about_me.pdf file
+            about_file_url = "https://raw.githubusercontent.com/nmsudarsan/nmsudarsanchatbot.github.io/main/about_me.pdf"
+
+            # Fetch the PDF file from GitHub
+            response = requests.get(about_file_url)
+            response.raise_for_status()  # Ensure the file was fetched successfully
+
+            # Convert the downloaded file to a file-like object
+            from io import BytesIO
+            pdf_file = BytesIO(response.content)
+
+            # Load the PDF file using LangChain's PyPDFLoader
             st.session_state.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-            st.session_state.loader = [
-                PyPDFLoader(resume_file),
-                PyPDFLoader(cover_letter_file)
-            ]
-            st.session_state.docs = [doc.load() for doc in st.session_state.loader]
+            loader = PyPDFLoader(pdf_file)
+            st.session_state.docs = loader.load()
 
             # Debug: Confirm documents loaded
             st.write("Documents loaded successfully")
             st.write(f"Loaded {len(st.session_state.docs)} documents.")
-
-            # Flatten loaded documents
-            st.session_state.docs = [doc for sublist in st.session_state.docs for doc in sublist]
 
             # Create vector embeddings
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
@@ -70,6 +70,7 @@ def load_documents():
             st.error(f"An error occurred during document loading: {e}")
     else:
         st.info("Documents are already loaded.")
+
 
 
 # Initialize session state keys
