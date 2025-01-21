@@ -17,7 +17,7 @@ load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
 os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
 
-st.title("Hi... I am Jarvis. Sudarsan's personal chatbot!")
+st.title("Hi... I am Friday. Sudarsan's personal chatbot!")
 
 # Initialize the LLM
 llm = ChatGroq(groq_api_key=groq_api_key, model_name="Llama3-8b-8192")
@@ -25,60 +25,58 @@ llm = ChatGroq(groq_api_key=groq_api_key, model_name="Llama3-8b-8192")
 # Define the prompt template
 prompt = ChatPromptTemplate.from_template(
     """
-    Answer the questions based on the provided context only.
+    You are Friday, Sudarsan's personal chatbot.
+    
+    Your role is to assist a hiring manager by answering questions about Sudarsan's professional and personal background, 
+    making him a standout candidate for their company.
+    
+    Answer all questions using the provided context only. 
     Please provide the most accurate response based on the question.
+    Your response should be to the point and answer the question only.
+
+    If a question falls outside the provided context, respond politely by stating that you are not trained on that information 
+    and will check with Sudarsan for clarification.
+
+    
     <context>
     {context}
     <context>
-    Questions: {input}
+    Question: {input}
     """
 )
+
 # Function to load documents from GitHub repository
 def load_documents():
-    """Loads the 'about_me.pdf' file from GitHub and creates vector embeddings."""
+    """Loads the 'about_me.pdf' file from the local directory and creates vector embeddings."""
     if not st.session_state.get("vectors_loaded", False):  # Check if already loaded
         try:
-            # GitHub raw file URL for the about_me.pdf file
-            about_file_url = "https://raw.githubusercontent.com/nmsudarsan/nmsudarsanchatbot.github.io/personal-chat/about_me.pdf"
-
-            # Fetch the PDF file from GitHub
-            response = requests.get(about_file_url)
-            response.raise_for_status()  # Ensure the file was fetched successfully
-
-            # Convert the downloaded file to a file-like object
-            from io import BytesIO
-            pdf_file = BytesIO(response.content)
+            # Local file path for the about_me.pdf file
+            about_file_path = "./about_me.pdf"
 
             # Load the PDF file using LangChain's PyPDFLoader
             st.session_state.embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
-            loader = PyPDFLoader(pdf_file)
+            loader = PyPDFLoader(about_file_path)
             st.session_state.docs = loader.load()
-
-            # Debug: Confirm documents loaded
-            st.write("Documents loaded successfully")
-            st.write(f"Loaded {len(st.session_state.docs)} documents.")
 
             # Create vector embeddings
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
             st.session_state.final_documents = text_splitter.split_documents(st.session_state.docs)
             st.session_state.vectors = FAISS.from_documents(st.session_state.final_documents, st.session_state.embeddings)
 
-            # Debug: Confirm vector embeddings
-            st.write("Vector store created successfully!")
-            st.success("Vector store DB is ready!")
+            # Single confirmation message
+            st.success("The document has been successfully loaded and processed!")
             st.session_state["vectors_loaded"] = True  # Mark vectors as loaded
         except Exception as e:
             st.error(f"An error occurred during document loading: {e}")
     else:
-        st.info("Documents are already loaded.")
+        st.info("The document is already loaded.")
 
-
-
+        
 # Initialize session state keys
 if "input" not in st.session_state:
     st.session_state["input"] = ""  # Initialize with an empty string
 if "responses" not in st.session_state:
-    st.session_state["responses"] = ["Hi! I am Jarvis. How can I assist you?"]
+    st.session_state["responses"] = ["Hi! I am Friday. How can I assist you?"]
 if "requests" not in st.session_state:
     st.session_state["requests"] = []
 if "vectors" not in st.session_state:
@@ -94,7 +92,7 @@ def handle_user_input():
         return  # Do nothing if the input is empty
 
     if "vectors" not in st.session_state or not st.session_state["vectors"]:
-        st.error("Please load the resume and cover letter first.")
+        st.error("Click here first.")
         return
 
     # Generate response
@@ -133,8 +131,7 @@ with input_container:
     )
 
 # Button to load documents
-if st.button("Load Resume and Cover Letter"):
+if st.button("Click here first"):
     load_documents()
-    if st.session_state.get("vectors_loaded", False):  # Ensure flag is checked
-        st.success("Documents have been successfully loaded!")
-
+    #if st.session_state.get("vectors_loaded", False):  # Ensure flag is checked
+        #st.success("Documents have been successfully loaded!")
