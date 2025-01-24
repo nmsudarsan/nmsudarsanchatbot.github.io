@@ -9,3 +9,4 @@ langchain_community
 langchain-groq
 pypdf
 streamlit_chat
+requests
